@@ -69,9 +69,9 @@ class TunnelClient:
             await writer.flush()
 
 async def main():
-    connectExample = 'py tunnelClient.py tcp/http localHost localPort serverPort/subdomain password'
+    connectExample = 'py tunnelClient.py tcp/http localHost localPort serverDomain serverPort/subdomain password'
     argv = sys.argv
-    if len(argv) != 6:
+    if len(argv) != 7:
         print(f'Invalid arguments: {connectExample}')
         return
 
@@ -83,22 +83,24 @@ async def main():
     except Exception:
         print(f'localPort should be a number: {connectExample}')
         return
-    
+
+    serverDomain = argv[4]
+
     if target == 'tcp':
-        try: serverCon = int(argv[4])
+        try: serverCon = int(argv[5])
         except Exception:
             print(f'serverPort (since tcp) should be a number: {connectExample}')
             return
     if target == 'http':
-        serverCon = argv[4]
+        serverCon = argv[5]
     else:
         print(f'Invalid target type, should be tcp or http: {connectExample}')
         return
 
 
-    password = argv[5]
+    password = argv[6]
 
-    tc = TunnelClient('yazaar.xyz', 9000, localHost, localPort, target, serverCon, password)
+    tc = TunnelClient(serverDomain, 9000, localHost, localPort, target, serverCon, password)
 
     await tc.start()
 
