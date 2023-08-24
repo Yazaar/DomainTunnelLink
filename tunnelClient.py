@@ -91,7 +91,7 @@ async def main():
         except Exception:
             print(f'serverPort (since tcp) should be a number: {connectExample}')
             return
-    if target == 'http':
+    elif target == 'http':
         serverCon = argv[5]
     else:
         print(f'Invalid target type, should be tcp or http: {connectExample}')
