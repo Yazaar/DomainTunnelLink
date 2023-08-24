@@ -102,13 +102,15 @@ class SocketServer(HTTPServer):
     def __init__(self, server: asyncio.Server, identifier: str):
         self.identifier = identifier
         self.server = server
+        self.__open = True
 
     @property
-    def is_open(self) -> bool: return self.server.is_serving()
+    def is_open(self) -> bool: return self.__open
 
     def close(self):
         try: self.server.close()
         except Exception: pass
+        self.__open = False
 
     async def join(self):
         await self.server.serve_forever()
