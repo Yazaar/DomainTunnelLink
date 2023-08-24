@@ -155,8 +155,16 @@ class TunnelServer:
 
         sc.write(b'1;')
         await sc.flush()
+
         identifier = f'{port}.tcp'
         self.__tcpServers[port] = SocketServer(await create_server('0.0.0.0', port, self.__bakeOnTCP(port, sc), identifier), identifier)
+
+        while True:
+            if await sc.read(1024) == b'':
+                if port in self.__tcpServers:
+                    self.__tcpServers[port].close()
+                    del self.__tcpServers[port]
+                break
 
     async def __authHTTP(self, sc: SocketConnection):
         subdomain = (await sc.readuntil(b';'))[:-1].decode('utf-8')
@@ -306,7 +314,7 @@ async def main():
     if re.match(r'^[a-zA-Z0-9]+\.[a-zA-Z0-9]+(\.[a-zA-Z0-9]+)?$', currentBasedomain) is None:
         print('Invalid domain in basedomain.txt')
         return
-    
+
     if len(https) == 0 and len(tcps) == 0:
         print('No tunneled ports, exiting')
         return
