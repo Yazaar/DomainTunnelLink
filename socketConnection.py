@@ -75,10 +75,9 @@ class SocketConnection:
     def close(self):
         self.writer.close()
 
-class HTTPServer:
-    def __init__(self, server: SocketConnection, identifier: str):
+class ServerRegistry():
+    def __init__(self, identifier : str):
         self.identifier = identifier
-        self.server = server
         self.__requests: dict[str, SocketConnection] = {}
 
     def register_request_id(self, sc: SocketConnection):
@@ -96,13 +95,18 @@ class HTTPServer:
         if sc is None: return
         sc.close()
 
+class HTTPServer(ServerRegistry):
+    def __init__(self, server: SocketConnection, identifier: str):
+        super().__init__(identifier)
+        self.server = server
+
     def close(self):
         try: self.server.close()
         except Exception: pass
 
-class SocketServer(HTTPServer):
+class SocketServer(ServerRegistry):
     def __init__(self, server: asyncio.Server, identifier: str):
-        super().__init__(server, identifier)
+        super().__init__(identifier)
         self.server = server
         self.__open = True
 
