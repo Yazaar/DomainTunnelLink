@@ -269,10 +269,14 @@ class TunnelServer:
     async def __passthrough(self, reader: SocketConnection, writer: SocketConnection):
         while True:
             data = await reader.read(2048)
-            if not data:
+            if data == b'':
                 break
             writer.write(data)
-            await writer.flush()
+            try: await writer.flush()
+            except Exception:
+                break
+        reader.close()
+        writer.close()
 
 async def main():
     https = []
@@ -314,7 +318,7 @@ async def main():
     if re.match(r'^[a-zA-Z0-9]+\.[a-zA-Z0-9]+(\.[a-zA-Z0-9]+)?$', currentBasedomain) is None:
         print('Invalid domain in basedomain.txt')
         return
-
+    
     if len(https) == 0 and len(tcps) == 0:
         print('No tunneled ports, exiting')
         return

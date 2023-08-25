@@ -1,4 +1,7 @@
-import asyncio, time, secrets
+import asyncio
+import time
+import secrets
+
 
 async def create_server(host: str, port: int, on_client_callback, identifier: str):
     async def client_callback(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
@@ -97,10 +100,9 @@ class HTTPServer:
         try: self.server.close()
         except Exception: pass
 
-
 class SocketServer(HTTPServer):
     def __init__(self, server: asyncio.Server, identifier: str):
-        self.identifier = identifier
+        super().__init__(server, identifier)
         self.server = server
         self.__open = True
 
