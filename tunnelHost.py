@@ -30,6 +30,18 @@ class TunnelHost:
     async def auth_request(self, ip: str, resourceType: str, resourceItem: str, resourceCode: str):
         if resourceType == 'tcp':
             return await self.__auth_request_tcp(ip, resourceItem, resourceCode)
+        elif resourceType == 'http':
+            return await self.__auth_request_http(ip, resourceItem, resourceCode)
+
+    async def __auth_request_http(self, ip: str, host: str, resourceCode: str):
+        if not host:
+            return False
+
+        http = misc.find_first(self.__https, lambda x: x.con == host)
+        if not isinstance(http, GenericHost):
+            return False
+
+        return await http.auth_request(ip, resourceCode) 
 
     async def __auth_request_tcp(self, ip: str, resourceItem: str, resourceCode: str):
         port = misc.to_int(resourceItem, None)
@@ -43,8 +55,9 @@ class TunnelHost:
         return await tcp.auth_request(ip, resourceCode) 
 
     async def __on_http_access(self, connection: SocketWrapper):
-        accept, domain = await misc.http_identification(connection)
-        if not accept or not domain:
+        headers = await misc.http_identification(connection)
+        domain = headers.get('host', None) if headers else None
+        if not domain:
             connection.close()
             return
 
@@ -56,7 +69,7 @@ class TunnelHost:
             connection.close()
             return
         
-        misc.queue_task(httpHost.on_client(connection))
+        misc.queue_task(httpHost.on_client(connection, headers=headers))
 
     async def __on_tcp_access(self, connection: SocketWrapper):
         stream = await connection.read_until(b';')
@@ -144,7 +157,7 @@ async def main():
         print(hashlib.sha256(full_auth).hexdigest() + '\n')
         return
 
-    file = misc.get_file('tunnelServers.csv')
+    file = misc.get_file('tunnel_servers.csv')
     csvReader = CSVReader(file)
     th = TunnelHost(csvReader)
     await th.start()

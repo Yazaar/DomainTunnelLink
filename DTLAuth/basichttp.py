@@ -1,6 +1,7 @@
 import http.server, socketserver, json, threading, asyncio
 from concurrent.futures import TimeoutError as FutureTimeout
-from DTLAuth.utils import STATIC_FOLDER, TEMPLATE_FOLDER, AUTH_CALLBACK_TYPE, handle_auth_request, static_resolver, get_ip
+from DTLAuth.utils import STATIC_FOLDER, TEMPLATE_FOLDER, AUTH_CALLBACK_TYPE, handle_auth_request, static_resolver
+from helpers.misc import get_ip
 
 class BasicHttpHandler(http.server.SimpleHTTPRequestHandler):
     def do_GET(self):

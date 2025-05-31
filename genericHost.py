@@ -90,13 +90,15 @@ class GenericHost:
     async def is_open(self):
         return self.binding and self.binding.isOpen
 
-    async def on_client(self, connection: SocketWrapper):
+    async def on_client(self, connection: SocketWrapper, *, headers: dict | None = None):
         isOpen = await self.is_open()
         if not isOpen:
             connection.close()
             return
         
-        if self.auth and (not connection.ip or not connection.ip in self.accepted):
+        ip = misc.get_ip(headers if headers else {}, [connection.ip])
+        
+        if self.auth and (not ip or not ip in self.accepted):
             connection.close()
             return
 

@@ -1,7 +1,8 @@
 import json
 from pathlib import Path
 from aiohttp import web
-from DTLAuth.utils import AUTH_CALLBACK_TYPE, handle_auth_request, get_ip
+from DTLAuth.utils import AUTH_CALLBACK_TYPE, handle_auth_request
+from helpers.misc import get_ip
 
 _onResourceAuthCallback = None
 

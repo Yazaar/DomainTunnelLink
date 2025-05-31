@@ -55,14 +55,3 @@ def static_resolver(path: str) -> tuple[str, str | bytes | None]:
 
     return mime, data
 
-def get_ip(headers: dict, fallbacks: list[str | None]):
-    ip = headers.get('X-Forwarded-For', '').split(',')[0].strip()
-    if ip and isinstance(ip, str): return ip
-    ip = headers.get('X-Real-IP')
-    if ip and isinstance(ip, str): return ip
-
-    for fallback in fallbacks:
-        if fallback and isinstance(fallback, str):
-            return fallback
-
-    return None

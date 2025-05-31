@@ -1,6 +1,7 @@
 import asyncio, typing, hashlib, uuid, time, json, base64, datetime
 from pathlib import Path
 from helpers.socketWrapper import SocketWrapper
+from helpers.csvReader import CSVReader
 
 ROOT = Path(__file__).parent.parent
 
@@ -105,11 +106,29 @@ async def http_identification(connection: SocketWrapper):
     buffer += raw_headers + match
 
     headers = get_http_headers(raw_headers)
-    header_host = headers.get('host')
-
-    if not header_host:
-        connection.push_back(buffer)
-        return False, None
 
     connection.push_back(buffer)
-    return True, header_host
+    return headers
+
+VALID_IP_HEADERS = csvFile = CSVReader(ROOT / 'http_ip_headers.csv')
+
+def get_ip(headers: dict, fallbacks: list[str | None]):
+    for header in VALID_IP_HEADERS.data:
+        header_name = header.get('name', None)
+        header_type = header.get('type', None)
+        if not header_name: continue
+
+        header_value = headers.get(header_name)
+        if not isinstance(header_value, str): continue
+
+        if header_type == 'array': header_value = header_value.split(',')[0]
+        elif header_type == 'text': pass
+        else: continue
+
+        if header_value: return header_value
+    
+
+    for fallback in fallbacks:
+        if fallback and isinstance(fallback, str): return fallback
+
+    return None
