@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tunnel App</title>
+    <link rel="stylesheet" href="/public/css/style.css">
+</head>
+<body>
+    <div id="fixed-bg"></div>
+    <nav>
+        <h1>DTL</h1>
+        <div class="nav-links">
+            <div data-target="#authenticate">authenticate</div>
+        </div>
+    </nav>
+
+    <div class="content">
+        <h2>Project</h2>
+        <p class="subtitle">Host heavy load locally, expose through public domain</p>
+        <p>DomainTunnelLink is an open source project, linking local resources to the open web.</p>
+        <ul>
+            <li>Why rent expensive servers, when you have accessible computers?</li>
+            <li>Why expose servers by IP, when you have a domain name?</li>
+            <li>Why force yourself to use random ports and URLs each startup?</li>
+        </ul>
+        
+        <p class="subtitle topPush">Link everything you need, wherever you are</p>
+        <p>Multiple protocol support</p>
+        <ul>
+            <li>TCP servers - such as Minecraft Java Edition</li>
+            <li>Web servers (http/https) - All web services (with WebSocket support)</li>
+            <li>UDP servers - such as Minecraft Bedrock Edition</li>
+        </ul>
+        
+        <p class="subtitle topPush">Stay safe, stay private, stay secure</p>
+        <p>Allow others to gain access to your servers, without holding back on security.</p>
+        <ul>
+            <li>Prevent unauthorized access by password protection - whitelist your IP on DTL for the resource before gaining access</li>
+        </ul>
+
+        <h2 id="authenticate">Authenticate</h2>
+        <p class="subtitle">Whitelist access to active resource</p>
+        <div class="input-item">
+            <label for="resource-type">Resource type</label>
+            <div class="input-wrap">
+                <select class="input" id="resource-type">
+                    <option value="tcp">TCP</option>
+                    <option value="udp">UDP</option>
+                    <option value="http">HTTP</option>
+                </select>
+            </div>
+        </div>
+        <div class="input-item">
+            <label for="resource-item">Resource item</label>
+            <div class="input-wrap">
+                <input class="input" type="text" id="resource-item">
+            </div>
+        </div>
+        <div class="input-item">
+            <label for="resource-code">Resource code</label>
+            <div class="input-wrap">
+                <input class="input" type="password" id="resource-code">
+            </div>
+        </div>
+        <p>Status: <span id="resource-status"></span></p>
+        <div class="button topPush" id="request-resource">Request</div>
+    </div>
+    
+    <script src="/public/js/script.js"></script>
+</body>
+</html>
