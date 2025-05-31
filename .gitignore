@@ -1,7 +1,6 @@
-
+/.venv/
 __pycache__/
 
 *.pyc
-
-basedomain.txt
-tunnelServers.csv
+/tunnel_servers.csv
+/http_ip_headers.csv

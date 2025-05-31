@@ -1,0 +1,150 @@
+*:not(ul, ol) {
+    margin: 0;
+    padding: 0;
+}
+
+ul, ol {
+    margin-top: 0;
+    margin-bottom: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
+:root {
+    font-size: 1.25rem;
+}
+
+body {
+    margin: 5px;
+}
+
+#fixed-bg {
+    position: fixed;
+    top: 0;
+    left: 0;
+    background: linear-gradient(#afd6d8, #3d5c5e);
+    height: 100%;
+    width: 100%;
+    z-index: -1;
+}
+
+nav {
+    display: flex;
+    padding: 5px;
+    border: #3d5c5e solid 3px;
+    border-radius: 10px;
+}
+
+nav > h1 {
+    display: inline-block;
+    font-size: 2rem;
+    background: #3d5c5e;
+    align-self: flex-start;
+    padding: 5px 10px;
+    margin: 0 5px;
+    border-radius: 10px;
+    color: white;
+}
+
+.nav-links {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    flex: 1 0;
+}
+
+.nav-links > a, .nav-links > div {
+    color: black;
+    font-size: 1.25rem;
+    text-decoration: none;
+    display: inline-block;
+    padding: 2px 15px;
+    margin: 5px;
+    background: #3d5c5e;
+    border-radius: 10px;
+    color: white;
+    transition: transform 250ms ease-in-out;
+    cursor: pointer;
+}
+
+.nav-links > a:hover, .nav-links > div:hover {
+    text-decoration: underline;
+    transform: scale(1.1);
+}
+
+.content h2 {
+    margin-top: 10px;
+    margin-left: 5px;
+    font-size: 2rem;
+}
+
+.content p {
+    margin: 5px 0 1px 0;
+}
+
+.content .subtitle {
+    font-size: 1.2rem;
+    font-style: italic;
+    font-weight: bold;
+    color: #223436
+}
+
+.content .topPush {
+    margin-top: 15px;
+}
+
+.content .sectionSeparator {
+    margin-top: 30px;
+}
+
+.content .input-item {
+    margin: 5px 0;
+}
+
+.content .input-item .input-wrap {
+    display: inline-flex;
+    flex-direction: column;
+    justify-content: center;
+    width: 18ch;
+}
+
+.content .input-item .input-wrap .input {
+    font-size: 1rem;
+    background: #3d5c5e;
+    color: white;
+    padding: 5px;
+}
+
+.content .input-item label {
+    min-width: 13ch;
+    display: inline-block;
+    font-size: 1.1rem;
+}
+
+.content .button {
+    background: #1f2f31;
+    font-size: 1.3rem;
+    display: inline-block;
+    padding: 10px;
+    color: white;
+    cursor: pointer;
+    border-radius: 10px;
+    transition: background 250ms ease-in-out;
+    user-select: none;
+    -moz-user-select: none;
+    -webkit-user-select: none;
+}
+
+.content .button:hover {
+    background: #080b0c;
+}
+
+.content .button:active {
+    transition: background 0ms ease-in-out;
+    background: #1f2f31;
+}
+
+
+.content .button.loading {
+    opacity: 0.5;
+}
