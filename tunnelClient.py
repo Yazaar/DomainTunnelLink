@@ -191,10 +191,11 @@ async def main():
         try:
             await tc.start()
         except QuitException as e:
-            print(f'Tunnel client interrupted, err: {str(e)}')
+            print(f'Tunnel client closed (quitting), err: {str(e)}')
             break
         except Exception as e:
-            print(f'Tunnel client interrupted, err: {str(e)}')
+            print(f'Tunnel client interrupted (restarting in 10s), err: {str(e)}')
+            await asyncio.sleep(10)
 
 if __name__ == '__main__':
     asyncio.run(main())
