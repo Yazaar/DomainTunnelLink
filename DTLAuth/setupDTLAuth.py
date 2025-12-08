@@ -7,12 +7,12 @@ logger = logging.getLogger(__name__)
 async def aiohttp(port: int, onResourceAuthCallback: AUTH_CALLBACK_TYPE):
     from DTLAuth.aiohttpAuth import start_web
     await start_web(port, onResourceAuthCallback)
-    logger.info('[aiohttp] Running')
+    logger.info('Auth aiohttp running')
 
 async def basichttp(port: int, onResourceAuthCallback: AUTH_CALLBACK_TYPE):
     from DTLAuth.basichttp import start_web
     await start_web(port, onResourceAuthCallback)
-    logger.info('[basichttp] Running')
+    logger.info('Auth basichttp running')
 
 PRIORITY = ['aiohttp', 'basic']
 PRIORITY_CALLBACKS = {
@@ -20,33 +20,33 @@ PRIORITY_CALLBACKS = {
     'basic': basichttp
 }
 
-async def setupDTLAuth(parsed_argv: dict[str, str], onResourceAuthCallback):
-    webPort = misc.to_int(parsed_argv.get('webPort'), None)
-    if webPort is None:
+async def setupDTLAuth(parsed_argv: dict[str, str], on_resource_auth_callback):
+    web_port = misc.to_int(parsed_argv.get('webPort'), None)
+    if web_port is None:
         logger.info('DTL Auth disabled due to no provided port (--webPort arg)')
         return
     
-    if webPort < misc.MIN_PORT_NUMBER or webPort > misc.MAX_PORT_NUMBER:
+    if web_port < misc.MIN_PORT_NUMBER or web_port > misc.MAX_PORT_NUMBER:
         logger.error(f'DTL Auth invalid port (accepted: {misc.MIN_PORT_NUMBER}-{misc.MAX_PORT_NUMBER})')
         return
 
-    webClients = parsed_argv.get('webClient', None)
-    webClients = PRIORITY if webClients is None else [webClients]
+    web_clients = parsed_argv.get('webClient', None)
+    web_clients = PRIORITY if web_clients is None else [web_clients]
 
     errs = []
     is_ok = False
 
-    for webClient in webClients:
-        setupCallback = PRIORITY_CALLBACKS.get(webClient, None)
-        if setupCallback is None:
-            errs.append({'m': webClient, 'e': 'client not found'})
+    for web_client in web_clients:
+        setup_callback = PRIORITY_CALLBACKS.get(web_client, None)
+        if setup_callback is None:
+            errs.append({'m': web_client, 'e': 'client not found'})
             continue
         try:
-            await setupCallback(webPort, onResourceAuthCallback)
+            await setup_callback(web_port, on_resource_auth_callback)
             is_ok = True
             break
         except Exception as e:
-            errs.append({'m': webClient, 'e': str(e)})
+            errs.append({'m': web_client, 'e': str(e)})
 
     if not is_ok:
         for i in errs:
