@@ -54,7 +54,7 @@ The HTTP server (DTL Authorization website) is probably reading it case sensitiv
 
 ## Expose locally running website
 ```bash
-python tunnelClient.py --appType http --appHost localhost --appPort website.yazaar.xyz --appAuth secret --serverHost yazaar.xyz --serverTarget 25565 --serverAuth 8gC44Z23Lfz
+python tunnelClient.py --appType http --appHost localhost --appPort website.yazaar.xyz --appAuth secret --serverHost yazaar.xyz --serverTarget 8888 --serverAuth 8gC44Z23Lfz
 ```
 
 ### Client fields
