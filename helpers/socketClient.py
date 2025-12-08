@@ -1,5 +1,5 @@
 import asyncio
-from helpers.socketWrapper import SocketWrapper
+from helpers import SocketWrapper
 
 class SocketClient:
     def __init__(self, host: str, port: int) -> None:

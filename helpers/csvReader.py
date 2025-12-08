@@ -1,5 +1,8 @@
 from pathlib import Path
 import csv
+import logging
+
+logger = logging.getLogger(__name__)
 
 class CSVReader:
   def __init__(self, file: Path):
@@ -11,14 +14,19 @@ class CSVReader:
       return
 
     rawData: list[list[str]] = []
-    with open(file, 'r') as f:
-      reader = csv.reader(f)
-      rawData = [i for i in reader]
+    try:
+      with open(file, 'r') as f:
+        reader = csv.reader(f)
+        rawData = [i for i in reader]
+    except Exception as e:
+      logger.error(f'Failed to read CSV file {file}: {str(e)}')
+      return
+
+    if len(rawData) == 0:
+      return
 
     self.headers = rawData[0]
     self.rows = rawData[1:]
-
-    if len(self.rows) == 0: return
 
     rowLen = len(self.headers)
     iterator = list(range(rowLen))

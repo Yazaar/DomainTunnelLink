@@ -1,15 +1,18 @@
 from helpers import misc
 from DTLAuth.utils import AUTH_CALLBACK_TYPE
+import logging
+
+logger = logging.getLogger(__name__)
 
 async def aiohttp(port: int, onResourceAuthCallback: AUTH_CALLBACK_TYPE):
     from DTLAuth.aiohttpAuth import start_web
     await start_web(port, onResourceAuthCallback)
-    print('[HTTP Auth: aiohttp] Running')
+    logger.info('[aiohttp] Running')
 
 async def basichttp(port: int, onResourceAuthCallback: AUTH_CALLBACK_TYPE):
     from DTLAuth.basichttp import start_web
     await start_web(port, onResourceAuthCallback)
-    print('[HTTP Auth: basichttp] Running')
+    logger.info('[basichttp] Running')
 
 PRIORITY = ['aiohttp', 'basic']
 PRIORITY_CALLBACKS = {
@@ -20,11 +23,11 @@ PRIORITY_CALLBACKS = {
 async def setupDTLAuth(parsed_argv: dict[str, str], onResourceAuthCallback):
     webPort = misc.to_int(parsed_argv.get('webPort'), None)
     if webPort is None:
-        print(f'[DTL Auth] disabled due to no provided port (--webPort arg)')
+        logger.info('DTL Auth disabled due to no provided port (--webPort arg)')
         return
     
     if webPort < misc.MIN_PORT_NUMBER or webPort > misc.MAX_PORT_NUMBER:
-        print(f'[DTL Auth] invalid port (accepted: {misc.MIN_PORT_NUMBER}-{misc.MAX_PORT_NUMBER})')
+        logger.error(f'DTL Auth invalid port (accepted: {misc.MIN_PORT_NUMBER}-{misc.MAX_PORT_NUMBER})')
         return
 
     webClients = parsed_argv.get('webClient', None)
@@ -49,4 +52,4 @@ async def setupDTLAuth(parsed_argv: dict[str, str], onResourceAuthCallback):
         for i in errs:
             m = i['m']
             e = i['e']
-            print(f'[DTL Auth {m}] {e}')
+            logger.error(f'DTL Auth {m}: {e}')

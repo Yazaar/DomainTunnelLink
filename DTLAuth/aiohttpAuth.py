@@ -2,7 +2,7 @@ import json
 from pathlib import Path
 from aiohttp import web
 from DTLAuth.utils import AUTH_CALLBACK_TYPE, handle_auth_request
-from helpers.misc import get_ip
+from helpers import misc
 
 _onResourceAuthCallback = None
 
@@ -11,9 +11,6 @@ TEMPLATE_FOLDER = Path(__file__).parent / 'web/templates'
 
 app = web.Application()
 routes = web.RouteTableDef()
-
-with open(TEMPLATE_FOLDER / 'index.html', 'r') as f:
-    ROOT_HTML_RESP = f.read()
 
 routes.static('/public', STATIC_FOLDER)
 
@@ -25,7 +22,7 @@ async def web_root(request: web.Request):
 
 @routes.post('/api/auth-resource')
 async def api_web_auth_resource(request: web.Request):
-    ip = get_ip(dict(request.headers), [request.remote])
+    ip = misc.get_ip(dict(request.headers), [request.remote])
 
     try:
         data = await request.json()
