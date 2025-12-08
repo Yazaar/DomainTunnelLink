@@ -89,9 +89,9 @@ python test/apps/http_client.py --port 8000 --domain test.example.com --path /ap
 Edit `tunnel_servers.csv`:
 ```csv
 type,con,sha256hex,salt
-tcp,25565,1930a5b7ee4d6ca7d909ccf7fdaecfe544a895f138e290185fc918803c9904e8,good
-http,test.yazaar.xyz,1930a5b7ee4d6ca7d909ccf7fdaecfe544a895f138e290185fc918803c9904e8,good
-udp,5000,1930a5b7ee4d6ca7d909ccf7fdaecfe544a895f138e290185fc918803c9904e8,good
+tcp,6001,37268335dd6931045bdcdf92623ff819a64244b53d0e746d438797349d4da578,test
+http,test.example.local,37268335dd6931045bdcdf92623ff819a64244b53d0e746d438797349d4da578,test
+udp,5001,37268335dd6931045bdcdf92623ff819a64244b53d0e746d438797349d4da578,test
 ```
 
 ### Step-by-step Testing
@@ -99,7 +99,7 @@ udp,5000,1930a5b7ee4d6ca7d909ccf7fdaecfe544a895f138e290185fc918803c9904e8,good
 #### 1. Terminal 1 - Start Demo Server
 ```bash
 # Start TCP echo server
-python test/apps/tcp_echo_server.py 25565
+python test/apps/tcp_echo_server.py 6000
 ```
 
 #### 2. Terminal 2 - Start TunnelHost
@@ -107,33 +107,23 @@ python test/apps/tcp_echo_server.py 25565
 python tunnelHost.py
 ```
 
-Expected output:
-```
-TunnelHost listening on 0.0.0.0:9000 (TCP)
-TunnelHost listening on 0.0.0.0:8001 (HTTP)
-```
-
 #### 3. Terminal 3 - Start TunnelClient
 ```bash
-python tunnelClient.py \
-    --server-host 127.0.0.1 \
-    --server-port 9000 \
-    --app-host 127.0.0.1 \
-    --app-port 25565 \
-    --type tcp \
-    --target 25565 \
-    --password good
+python tunnelClient.py --appType tcp --appHost 127.0.0.1 --appPort 6000 --serverHost 127.0.0.1 --serverTarget 6001 --serverAuth test
 ```
 
 #### 4. Terminal 4 - Test Through Tunnel
 ```bash
-# Connect through tunnel on a different port (tunnelClient listens on app-port)
-python test/apps/tcp_client.py --port 25565 --message "Test message"
+python test/apps/tcp_client.py --port 6001 --message "Test message"
 ```
 
 You should see:
-- Server receives "Test message"
-- Client receives "Echo: Test message"
+- Client
+  - Sending: Test message
+  - Received: Echo: Test message
+- Server (12345 is a random port allocated by the OS)
+  - Received from ('127.0.0.1', 12345): Test message
+  - Sent to ('127.0.0.1', 12345): Echo: Test message
 
 ## Command Line Options
 
@@ -143,7 +133,7 @@ python test/apps/tcp_client.py [OPTIONS]
 
 Options:
   --host HOST           Target host (default: 127.0.0.1)
-  --port PORT           Target port (default: 25565)
+  --port PORT           Target port (default: 6000)
   --message MESSAGE     Message to send (if not specified, enters interactive mode)
 ```
 
@@ -176,123 +166,3 @@ python test/apps/tcp_echo_server.py [PORT]
 python test/apps/udp_echo_server.py [PORT]
 python test/apps/http_server.py [PORT]
 ```
-
-## Example Scenarios
-
-### Scenario 1: Direct Connection to Echo Server
-```bash
-# Terminal 1
-python test/apps/tcp_echo_server.py 25565
-
-# Terminal 2
-python test/apps/tcp_client.py --port 25565 --message "Hello"
-# Output: Echo: Hello
-```
-
-### Scenario 2: Through TunnelHost/TunnelClient
-
-```bash
-# Terminal 1 - Echo server (on original port)
-python test/apps/tcp_echo_server.py 25565
-
-# Terminal 2 - TunnelHost (listens on 9000)
-python tunnelHost.py
-
-# Terminal 3 - TunnelClient (connects to 9000, forwards to 25565)
-python tunnelClient.py \
-    --server-host 127.0.0.1 \
-    --server-port 9000 \
-    --app-host 127.0.0.1 \
-    --app-port 25565 \
-    --type tcp \
-    --target 25565 \
-    --password good
-
-# Terminal 4 - Client connects to TunnelClient's app port (25565)
-python test/apps/tcp_client.py --port 25565 --message "Hello through tunnel"
-```
-
-### Scenario 3: Multiple Tunnels
-
-You can run multiple TunnelClient instances for different protocols:
-
-```bash
-# Terminal 3a - TCP tunnel
-python tunnelClient.py \
-    --server-host 127.0.0.1 \
-    --server-port 9000 \
-    --app-host 127.0.0.1 \
-    --app-port 25565 \
-    --type tcp \
-    --target 25565 \
-    --password good
-
-# Terminal 3b - UDP tunnel (in another terminal)
-python tunnelClient.py \
-    --server-host 127.0.0.1 \
-    --server-port 9000 \
-    --app-host 127.0.0.1 \
-    --app-port 5000 \
-    --type udp \
-    --target 5000 \
-    --password good
-```
-
-## Logging
-
-All applications use Python's logging module. By default, logs show:
-- Timestamp
-- Component name
-- Log level
-- Message
-
-Example log output:
-```
-2025-12-06 10:30:45,123 - __main__ - INFO - TCP Echo Server started on 127.0.0.1:25565
-2025-12-06 10:30:46,456 - __main__ - INFO - Client connected: ('127.0.0.1', 54321)
-2025-12-06 10:30:46,789 - __main__ - INFO - Received from ('127.0.0.1', 54321): Hello
-```
-
-## Troubleshooting
-
-### "Address already in use" error
-The port is still in use. Wait a few seconds or use a different port.
-
-```bash
-python test/apps/tcp_echo_server.py 25566  # Use different port
-```
-
-### Connection refused
-Make sure the server is running on the correct host and port.
-
-```bash
-# Check that server is listening
-netstat -an | findstr LISTENING
-```
-
-### No response from client
-- Check that server is running
-- Check that the host and port are correct
-- Check that firewall isn't blocking connections
-
-## Testing Tips
-
-1. **Use separate terminals** - Makes it easier to see logs from each component
-2. **Start servers first** - Wait for "listening" message before connecting clients
-3. **Use the same host** - 127.0.0.1 or localhost for local testing
-4. **Test direct first** - Test server → client directly before testing through tunnel
-5. **Monitor logs** - Keep terminals visible to see what's happening
-6. **Test one protocol at a time** - TCP first, then UDP, then HTTP
-
-## Next Steps
-
-After testing with demo apps, consider:
-1. Creating automated test scripts
-2. Adding performance benchmarks
-3. Testing with multiple concurrent connections
-4. Testing with various message sizes
-5. Testing error conditions (disconnect, timeout, etc.)
-
----
-
-**Note**: These are simple demo applications for testing. For production use, add proper error handling, authentication, encryption, and monitoring.
