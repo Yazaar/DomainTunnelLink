@@ -1,7 +1,9 @@
-import asyncio, typing, hashlib, uuid, time, json, base64, datetime
+import asyncio, typing, hashlib, uuid, time, json, base64, datetime, logging
 from pathlib import Path
 from helpers.socketWrapper import SocketWrapper
 from helpers.csvReader import CSVReader
+
+logger = logging.getLogger(__name__)
 
 ROOT = Path(__file__).parent.parent
 
@@ -11,15 +13,15 @@ READ_BUFFER_SIZE = 5125
 
 __task_stack: dict[str, asyncio.Task] = {}
 
-def queue_task(coro: typing.Coroutine):
+def queue_task(coro: typing.Coroutine) -> None:
     taskId = new_uuid()
-    def on_done(doneTask: asyncio.Task):
+    def on_done(doneTask: asyncio.Task) -> None:
         try: __task_stack.pop(taskId)
         except Exception: pass
 
         try: doneTask.result()
         except Exception as e:
-            print(f"[Queue Task] Unhandled exception in background task: {str(e)}")
+            logger.error(f"Unhandled exception in background task: {str(e)}")
 
     task = asyncio.create_task(coro)
     __task_stack[taskId] = task
@@ -30,7 +32,7 @@ def validate_port(port):
     if port > MAX_PORT_NUMBER: raise ValueError(f'Port have to be an int of max {MAX_PORT_NUMBER}')
     if port < MIN_PORT_NUMBER: raise ValueError(f'Port have to be an int of min {MIN_PORT_NUMBER}')
 
-def load_argv(sys_argv: list[str]):
+def load_argv(sys_argv: list[str]) -> dict[str, str]:
     i = 0
     c = len(sys_argv) - 1
     parsed_args = {}
@@ -42,48 +44,49 @@ def load_argv(sys_argv: list[str]):
         i += 1
     return parsed_args
 
-async def run_forever():
+async def run_forever() -> None:
     while True:
         await asyncio.sleep(10)
 
-def get_file(path: str):
+def get_file(path: str) -> Path:
     return ROOT / path
 
-def to_int(data: str | None, default: int | None):
+def to_int(data: str | None, default: int | None) -> int | None:
     if (data is None): return default
     try: return int(data)
     except Exception: return default
 
-def find_first(collection: list, compare: typing.Callable[[typing.Any], bool]):
+def find_first(collection: list, compare: typing.Callable[[typing.Any], bool]) -> typing.Any | None:
     for i in collection:
         if compare(i):
             return i
+    return None
 
-def sha256(secret: str, salt: str):
+def sha256(secret: str, salt: str) -> str:
     return hashlib.sha256(f'{secret}{salt}'.encode('utf-8')).hexdigest()
 
-def sha256_match(hexdigest: str, secret: str, salt: str):
+def sha256_match(hexdigest: str, secret: str, salt: str) -> bool:
     return hexdigest == sha256(secret, salt)
 
-def new_uuid():
+def new_uuid() -> str:
     return f'{uuid.uuid4().hex}.{time.time_ns()}'
 
-def seconds_since(ts: datetime.datetime, current_time: datetime.datetime | None = None):
+def seconds_since(ts: datetime.datetime, current_time: datetime.datetime | None = None) -> float:
     if current_time is None: current_time = datetime.datetime.now()
     delta = current_time - ts
     return delta.total_seconds()
 
-def serialize(object):
+def serialize(object: typing.Any) -> bytes:
     return base64.b64encode(json.dumps(object).encode('utf-8'))
 
-def deserialize(encoded):
+def deserialize(encoded: bytes) -> typing.Any:
     return json.loads(base64.b64decode(encoded).decode())
 
-def http_response(msg: str):
+def http_response(msg: str) -> str:
     utctime = datetime.datetime.now(datetime.timezone.utc).strftime('%a, %d %b %Y %H:%M:%S UTC')
     return f'HTTP/1.1 200 OK\r\nServer: Yazaar-DTL-server\r\nDate: {utctime}\r\nContent-Type: text/html; charset=utf-8\r\nContent-Length: {len(msg)}\r\nConnection: close\r\n\r\n{msg}'
 
-def get_http_headers(data_bytes: bytes):
+def get_http_headers(data_bytes: bytes) -> dict[str, str]:
     headers: dict[str, str] = {}
 
     data = data_bytes.decode()
@@ -99,7 +102,7 @@ def get_http_headers(data_bytes: bytes):
         headers[header_key] = header_value
     return headers
 
-async def http_identification(connection: SocketWrapper):
+async def http_identification(connection: SocketWrapper) -> dict[str, str]:
     buffer = b''
 
     raw_headers, match = await connection.readuntil_any([b'\r\n\r\n', b'\n\n'])
@@ -110,9 +113,9 @@ async def http_identification(connection: SocketWrapper):
     connection.push_back(buffer)
     return headers
 
-VALID_IP_HEADERS = csvFile = CSVReader(ROOT / 'http_ip_headers.csv')
+VALID_IP_HEADERS = CSVReader(ROOT / 'http_ip_headers.csv')
 
-def get_ip(headers: dict, fallbacks: list[str | None]):
+def get_ip(headers: dict, fallbacks: list[str | None]) -> str | None:
     for header in VALID_IP_HEADERS.data:
         header_name = header.get('name', None)
         header_type = header.get('type', None)

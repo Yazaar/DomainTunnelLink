@@ -25,7 +25,7 @@ class SocketWrapper:
             buffer = self.buffer + buffer[:suffixCut]
             self.buffer = b''
             return buffer
-        except Exception as e:
+        except Exception:
             return None
 
     async def readuntil_any(self, matches: list[bytes]) -> tuple[bytes, bytes]:

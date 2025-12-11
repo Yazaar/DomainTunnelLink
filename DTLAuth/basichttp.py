@@ -1,7 +1,9 @@
-import http.server, socketserver, json, threading, asyncio
+import http.server, socketserver, json, threading, asyncio, logging
 from concurrent.futures import TimeoutError as FutureTimeout
 from DTLAuth.utils import STATIC_FOLDER, TEMPLATE_FOLDER, AUTH_CALLBACK_TYPE, handle_auth_request, static_resolver
-from helpers.misc import get_ip
+from helpers import misc
+
+logger = logging.getLogger(__name__)
 
 class BasicHttpHandler(http.server.SimpleHTTPRequestHandler):
     def do_GET(self):
@@ -38,7 +40,7 @@ class BasicHttpHandler(http.server.SimpleHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(encoded_content)
         else:
-            print(f'[basichttp] Unhandled url path: {self.path}')
+            logger.warning(f'Unhandled url path: {self.path}')
             self.send_error(404, "Unknown endpoint")
 
     def do_POST(self):
@@ -51,9 +53,9 @@ class BasicHttpHandler(http.server.SimpleHTTPRequestHandler):
                 self._json_response({'statusMessage': 'Failed to read data'})
                 return
 
-            ip = get_ip(dict(self.headers), [self.client_address[0]])
+            ip = misc.get_ip(dict(self.headers), [self.client_address[0]])
 
-            future = asyncio.run_coroutine_threadsafe(handle_auth_request(ip, data, _onResourceAuthCallback), _event_loop)
+            future = asyncio.run_coroutine_threadsafe(handle_auth_request(ip, data, _on_resource_auth_callback), _event_loop)
             resolvedAuth = None
 
             try:
@@ -62,7 +64,7 @@ class BasicHttpHandler(http.server.SimpleHTTPRequestHandler):
                 self._json_response({'statusMessage': 'Auth timeout'})
                 return
             except Exception as e:
-                print(f'[basichttp] Failed to handle _onResourceAuthCallback future.result: {str(e)}')
+                logger.error(f'Failed to handle auth request callback: {str(e)}')
                 self._json_response({'statusMessage': 'Auth error'})
                 return
             
@@ -78,17 +80,17 @@ class BasicHttpHandler(http.server.SimpleHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(response)
 
-async def start_web(port: int, onResourceAuthCallback: AUTH_CALLBACK_TYPE):
-    global _onResourceAuthCallback, _event_loop
+async def start_web(port: int, on_resource_auth_callback: AUTH_CALLBACK_TYPE):
+    global _on_resource_auth_callback, _event_loop
 
-    _onResourceAuthCallback = onResourceAuthCallback
+    _on_resource_auth_callback = on_resource_auth_callback
     _event_loop = asyncio.get_running_loop()
     handler = BasicHttpHandler
     handler.directory = str(STATIC_FOLDER.parent)
 
     def runner():
         with socketserver.TCPServer(('0.0.0.0', port), handler) as server:
-            print(f'[basichttp] Running on port {port}')
+            logger.info(f'Running on port {port}')
             server.serve_forever()
     
     thread = threading.Thread(target=runner, daemon=True)
