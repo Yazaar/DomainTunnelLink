@@ -1,5 +1,3 @@
-"""HTTP Protocol Handler - Handles HTTP/HTTPS tunneling logic."""
-
 import logging
 from typing import List
 from helpers import SocketWrapper, misc

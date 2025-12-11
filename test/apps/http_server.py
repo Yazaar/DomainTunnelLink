@@ -1,5 +1,3 @@
-"""Simple HTTP Server for testing."""
-
 import asyncio
 import logging
 import sys

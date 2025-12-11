@@ -1,5 +1,3 @@
-"""Simple TCP Echo Server for testing."""
-
 import asyncio
 import logging
 import sys
@@ -12,21 +10,17 @@ logger = logging.getLogger(__name__)
 
 
 class TcpEchoServer:
-    """Simple TCP echo server that receives data and sends it back."""
-    
     def __init__(self, host: str = '127.0.0.1', port: int = 6000):
         self.host = host
         self.port = port
         self.server = None
     
     async def handle_client(self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
-        """Handle individual client connections."""
         peer = writer.get_extra_info('peername')
         logger.info(f"Client connected: {peer}")
         
         try:
             while True:
-                # Read data from client
                 data = await reader.read(1024)
                 
                 if not data:
@@ -36,7 +30,6 @@ class TcpEchoServer:
                 message = data.decode('utf-8', errors='ignore')
                 logger.info(f"Received from {peer}: {message.strip()}")
                 
-                # Echo back to client
                 response = f"Echo: {message}"
                 writer.write(response.encode('utf-8'))
                 await writer.drain()
@@ -50,7 +43,6 @@ class TcpEchoServer:
             await writer.wait_closed()
     
     async def start(self):
-        """Start the TCP echo server."""
         self.server = await asyncio.start_server(
             self.handle_client,
             self.host,
@@ -64,7 +56,6 @@ class TcpEchoServer:
             await self.server.serve_forever()
     
     def stop(self):
-        """Stop the server."""
         if self.server:
             self.server.close()
 

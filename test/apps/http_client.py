@@ -1,5 +1,3 @@
-"""Simple HTTP client for testing."""
-
 import asyncio
 import logging
 import sys
@@ -36,8 +34,7 @@ Connection: close\r
             logger.info(f"Sending request:\n{request}")
             writer.write(request.encode('utf-8'))
             await writer.drain()
-            
-            # Read response
+
             response = b''
             while True:
                 data = await reader.read(1024)

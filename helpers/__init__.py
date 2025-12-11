@@ -1,17 +1,3 @@
-"""Helper utilities for DomainTunnelLink.
-
-This package provides utility functions and classes for networking, data processing,
-and general helper functionality used throughout the application.
-
-Modules:
-- misc: General utility functions (serialization, logging, etc)
-- csvReader: CSV file parsing
-- socketWrapper: TCP socket wrapper with buffering
-- socketClient: TCP client connection helper
-- socketHost: TCP server listener
-- socketRegistry: Connection registry for tracking clients
-"""
-
 from helpers.misc import (
     serialize,
     deserialize,
@@ -39,7 +25,6 @@ from helpers.socketHost import create_host
 from helpers.socketRegistry import SocketRegistry
 
 __all__ = [
-    # misc exports
     'serialize',
     'deserialize',
     'sha256',
@@ -57,7 +42,6 @@ __all__ = [
     'http_identification',
     'get_ip',
     'create_host',
-    # Classes
     'CSVReader',
     'SocketWrapper',
     'SocketClient',

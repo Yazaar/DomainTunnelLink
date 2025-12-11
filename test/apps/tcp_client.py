@@ -145,12 +145,10 @@ async def main():
     client = TcpClient(host, port)
     
     if message:
-        # Single message mode: connect, send, disconnect
         if await client.connect():
             await client.send_message(message)
             await client.disconnect()
     else:
-        # Interactive mode: manual connection control
         await client.interactive_mode()
 
 
