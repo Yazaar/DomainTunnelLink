@@ -104,13 +104,22 @@ class UDPSessions:
 
 
 class TunnelClient:
-    def __init__(self, server_host: str, server_port: str, app_host: str, app_port: str, target_type: str, target: str, password: str, auth: str, pool_count: str):
+    def __init__(
+            self,
+            server_host: str, server_port: str, server_ssl: bool, server_ssl_unsafe: bool,
+            app_host: str, app_port: str, app_ssl: bool, app_ssl_unsafe: bool,
+            target_type: str, target: str, password: str, auth: str, pool_count: str):
         self.server_host = server_host
         self.app_host = app_host
         self.target_type = target_type.lower()
         self.target = target
         self.password = password
         self.auth = auth
+
+        self.server_ssl = server_ssl
+        self.server_ssl_unsafe = server_ssl_unsafe
+        self.app_ssl = app_ssl
+        self.app_ssl_unsafe = app_ssl_unsafe
 
         use_port_target = self.target_type in ['tcp', 'udp']
 
@@ -137,7 +146,7 @@ class TunnelClient:
         try: misc.validate_port(self.app_port)
         except Exception as e: raise QuitException(f'App port error: {str(e)}')
 
-        self.client = SocketClient(self.server_host, self.server_port)
+        self.client = SocketClient(self.server_host, self.server_port, ssl_client=server_ssl, ssl_disable_verify=self.server_ssl_unsafe)
         self.pools: list[SocketClient] = []
         self.pool_index = -1
 
@@ -231,8 +240,8 @@ class TunnelClient:
             elif command == 'new_pool': misc.queue_task(self.__connect_new_pool(identifier))
 
     async def __connect_new_client(self, identifier: str):
-        server = SocketClient(self.server_host, self.server_port)
-        application = SocketClient(self.app_host, self.app_port)
+        server = SocketClient(self.server_host, self.server_port, ssl_client=self.server_ssl, ssl_disable_verify=self.server_ssl_unsafe)
+        application = SocketClient(self.app_host, self.app_port, ssl_client=self.app_ssl, ssl_disable_verify=self.app_ssl_unsafe)
         
         await asyncio.gather(server.start(), application.start())
 
@@ -256,7 +265,7 @@ class TunnelClient:
         if len(self.pools) + 2 < self.pool_count:
             await self.__send_add_pool_command()
 
-        server = SocketClient(self.server_host, self.server_port)
+        server = SocketClient(self.server_host, self.server_port, self.server_ssl, self.server_ssl_unsafe)
         await server.start()
 
         if not server.connection: raise Exception('Connection not opened')
@@ -303,7 +312,6 @@ class TunnelClient:
         await session.send((self.app_host, self.app_port), payload)
 
     async def __handle_session_message(self, payload: bytes, addr: AddrType, session: UDPSession, retries = 3):
-        print(payload, session.host, session.port)
         pool = self.__get_pool()
         if not pool or not pool.connection:
             if retries > 0:
@@ -371,20 +379,43 @@ async def main():
     loaded_argv = misc.load_argv(sys.argv)
 
     if 'help' in loaded_argv or len(loaded_argv.keys()) == 0:
-        print('py tunnelClient.py {args}\n--appType: tcp/http/udp\n--appHost: local IP to link\n--appPort: local port to link\n--appAuth: password required for others to authenticate before connecting (optional)\n--serverHost: public server host\n--serverTarget: Public port/host to link\n--serverAuth: password of public target\n--bridgePort: Port the server run the bridge service at (default 9000)\n--pools: Amount of pools used to handle UDP connections (default 1)')
+        print('\n'.join([
+            'py tunnelClient.py {args}',
+            '--appType: tcp/http/udp',
+            '--appHost: local IP to link',
+            '--appPort: local port to link',
+            '--appSSL: Enable https/ssl for the app (values: 1/0, default 0)',
+            '--appSSLUnsafe: Disable ssl verification (values: 1/0, default 0)',
+            '--appAuth: password required for others to authenticate before connecting (optional)',
+            '--serverHost: public server host',
+            '--serverSSL: Enable https/ssl for the server (values: 1/0, default 0)',
+            '--serverSSLUnsafe: Disable ssl verification (values: 1/0, default 0)',
+            '--serverTarget: Public port/host to link',
+            '--serverAuth: password of public target',
+            '--bridgePort: Port the server run the bridge service at (default 9000)',
+            '--pools: Amount of pools used to handle UDP connections (default 1)'
+        ]))
         return
 
     app_type = loaded_argv.get('appType', '')
     local_host = loaded_argv.get('appHost', '')
     local_port = loaded_argv.get('appPort', '')
+    app_ssl = loaded_argv.get('appSSL', '0') == '1'
+    app_ssl_unsafe = loaded_argv.get('appSSLUnsafe', '0') == '1'
     server_host = loaded_argv.get('serverHost', '')
     bridge_port = loaded_argv.get('bridgePort', '9000')
     server_target = loaded_argv.get('serverTarget', '')
     server_auth = loaded_argv.get('serverAuth', '')
+    server_ssl = loaded_argv.get('serverSSL', '0') == '1'
+    server_ssl_unsafe = loaded_argv.get('serverSSLUnsafe', '0') == '1'
     app_auth = loaded_argv.get('appAuth', '')
     pool_count = loaded_argv.get('pools', '')
 
-    tc = TunnelClient(server_host, bridge_port, local_host, local_port, app_type, server_target, server_auth, app_auth, pool_count)
+    tc = TunnelClient(
+        server_host, bridge_port, server_ssl, server_ssl_unsafe,
+        local_host, local_port, app_ssl, app_ssl_unsafe,
+        app_type, server_target, server_auth, app_auth, pool_count
+    )
     while True:
         try:
             await tc.start()

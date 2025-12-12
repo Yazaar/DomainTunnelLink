@@ -1,6 +1,6 @@
+import logging, os
 from helpers import misc
 from DTLAuth.utils import AUTH_CALLBACK_TYPE
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -21,7 +21,7 @@ PRIORITY_CALLBACKS = {
 }
 
 async def setupDTLAuth(parsed_argv: dict[str, str], on_resource_auth_callback):
-    web_port = misc.to_int(parsed_argv.get('webPort'), None)
+    web_port = misc.to_int(parsed_argv.get('webPort'), None) or misc.to_int(os.environ.get('DTL_AUTH_PORT', None), None)
     if web_port is None:
         logger.info('DTL Auth disabled due to no provided port (--webPort arg)')
         return

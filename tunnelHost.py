@@ -1,4 +1,4 @@
-import asyncio, sys, hashlib, logging
+import asyncio, sys, os, hashlib, logging
 from helpers import CSVReader, SocketWrapper, misc, create_host
 from genericHost import GenericHost
 from handlers import TcpProtocolHandler, HttpProtocolHandler, UdpProtocolHandler
@@ -7,13 +7,22 @@ from DTLAuth.setupDTLAuth import setupDTLAuth
 logger = logging.getLogger(__name__)
 
 class TunnelHost:
-    def __init__(self, csvReader: CSVReader):
+    def __init__(self, csvReader: CSVReader, parsed_argv: dict[str, str]):
         self.__tcps: list[GenericHost] = []
         self.__https: list[GenericHost] = []
         self.__udps: list[GenericHost] = []
 
-        self.__tcpServer = create_host('0.0.0.0', 9000, self.__on_tcp_access, None)
-        self.__httpServer = create_host('0.0.0.0', 8001, self.__on_http_access, None)
+        self.tcp_server_port = misc.to_int(parsed_argv.get('tcpPort', None), None) or misc.to_int(os.getenv('TCP_SERVER_PORT', None), None) or 9000
+        self.http_server_port = misc.to_int(parsed_argv.get('httpPort', None), None) or misc.to_int(os.getenv('HTTP_SERVER_PORT', None), None) or 8001
+
+        misc.validate_port(self.tcp_server_port)
+        misc.validate_port(self.http_server_port)
+
+        if self.tcp_server_port == self.http_server_port:
+            raise ValueError('TCP and HTTP port can\'t be the same')
+
+        self.__tcp_server = create_host('0.0.0.0', self.tcp_server_port, self.__on_tcp_access, None)
+        self.__http_server = create_host('0.0.0.0', self.http_server_port, self.__on_http_access, None)
 
         for i in csvReader.data:
             type_ = i['type']
@@ -30,8 +39,9 @@ class TunnelHost:
         self.__udp_handler = UdpProtocolHandler(self.__udps)
 
     async def start(self):
-        await self.__tcpServer.start()
-        await self.__httpServer.start()
+        await self.__tcp_server.start()
+        await self.__http_server.start()
+        logger.info(f'Started servers on ports: tcp={self.tcp_server_port}, http={self.http_server_port}')
     
     async def auth_request(self, ip: str, resourceType: str, resourceItem: str, resourceCode: str):
         if resourceType == 'tcp':
@@ -133,7 +143,7 @@ async def main():
 
     file = misc.get_file('tunnel_servers.csv')
     csvReader = CSVReader(file)
-    th = TunnelHost(csvReader)
+    th = TunnelHost(csvReader, parsed_argv)
     await th.start()
     logger.info('Tunnel host started')
     await setupDTLAuth(parsed_argv, th.auth_request)
