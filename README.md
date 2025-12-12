@@ -62,12 +62,16 @@ Fields provided to tunnelClient.py by --field value (any order)
 
 | Field | Required | Description |
 | ----- | -------- | ----------- |
-| appType | Yes (tcp/http) | If you are to host a TCP or HTTP server |
+| appType | Yes (tcp/http/udp) | If you are to host a TCP, HTTP or UDP server |
 | appHost | Yes | The local host you would like to expose (i.e ip or localhost) |
 | appPort | Yes | The local port of the host you would like to expose |
+| appSSL | No (default 0) | If the app you are binding to is using SSL (such as TLS/HTTPS, values: 1/0) |
+| appSSLUnsafe | No (default 0) | If you want to ignore verifying if the SSL is valid for the app (only takes effect if appSSL is on, values: 1/0) |
 | appAuth | No | If you would like to keep the server private. Have to authenticate through the authentication website by providing a password, leading to the IP being whitelisted to access the server |
 | serverHost | Yes | The public host which run tunnelHost.py |
+| serverSSL | No (default 0) | If the server you are binding to is using SSL (such as TLS/HTTPS, values: 1/0) |
+| serverSSLUnsafe | No (default 0) | If you want to ignore verifying if the SSL is valid for the server (only takes effect if serverSSL is on, values: 1/0) |
 | serverTarget | Yes | The resource you would like to claim and bind locally running service to (port or web domain) |
-| serverAuth | Yes | The password which the resource is locked behind (password behind the sha256hex within tunnel_servers.csv) |
 | serverAuth | Yes | The password which the resource is locked behind (auth password behind the sha256hex within tunnel_servers.csv) |
 | bridgePort | No (default 9000) | The port which tunnelClient should connect to, in order to handshake with the server (usually running on 9000 unless modified) |
+| pools | No (default 1) | The amount of connection pools to create for UDP protocol (only takes effect if appType is UDP) |
