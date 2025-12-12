@@ -13,7 +13,7 @@ class TunnelHost:
         self.__udps: list[GenericHost] = []
 
         self.tcp_server_port = misc.to_int(parsed_argv.get('tcpPort', None), None) or misc.to_int(os.getenv('TCP_SERVER_PORT', None), None) or 9000
-        self.http_server_port = misc.to_int(parsed_argv.get('httpPort', None), None) or misc.to_int(os.getenv('HTTP_SERVER_PORT', None), None) or 8001
+        self.http_server_port = misc.to_int(parsed_argv.get('httpPort', None), None) or misc.to_int(os.getenv('HTTP_SERVER_PORT', None), None) or 8000
 
         misc.validate_port(self.tcp_server_port)
         misc.validate_port(self.http_server_port)
